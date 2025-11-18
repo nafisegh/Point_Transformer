@@ -30,7 +30,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # -------------------------
 
 test_dataset = LiDARSegDataset(root='/content/MyDrive/MyDrive/LiDAR_Project/NPZ_LiDAR', split='test')
-test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
 # -------------------------
 # Load Trained Model
@@ -60,3 +60,42 @@ for idx,data in enumerate(test_loader):
   visualize_pointcloud(pos, preds, save_path)
 
   print(f'Saved visualization: {save_path}')
+
+import numpy as np
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+all_preds = []
+all_labels = []
+
+with torch.no_grad():
+  for data in test_loader:
+    data = data.to(device)
+    out = model(data.x, data.pos, data.batch)
+    preds = out.argmax(dim=1).cpu().numpy()
+    labels = data.y.cpu().numpy()
+
+    all_preds.append(preds)
+    all_labels.append(labels)
+# Flatten lists
+all_preds = np.concatenate(all_preds)
+all_labels = np.concatenate(all_labels)
+
+# Compute metrics
+overall_acc = accuracy_score(all_labels, all_preds)
+print(f"Overall Accuracy: {overall_acc:.4f}\n")
+
+print("Classification Report:")
+print(classification_report(all_labels, all_preds))
+
+
+cm = confusion_matrix(all_labels, all_preds)
+
+# Visualize confusion matrix
+plt.figure(figsize=(10,10))
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=True)
+plt.xlabel("Predicted Labels")
+plt.ylabel("True Labels")
+plt.title("Confusion Matrix")
+plt.show()
