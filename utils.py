@@ -14,6 +14,9 @@ import os
 def visualize_pointcloud(pos, labels, save_path):
   fig = plt.figure(figsize=(10, 10))
   ax = fig.add_subplot(111, projection='3d')
+  ax.set_xlabel('X', weight='bold')
+  ax.set_ylabel('Y', weight='bold')
+  ax.set_zlabel('Class Label', weight='bold')
   scatter = ax.scatter(pos[:, 0], pos[:, 1], pos[:, 2], c=labels, cmap= 'tab20', s=1)
   plt.colorbar(scatter)
   if save_path:
